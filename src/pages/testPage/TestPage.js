@@ -5,12 +5,11 @@ import React, { useEffect } from 'react'
 // Auth.currentCredentials().then(creds => console.log(creds));
 
 const TestPage = () => {
-  console.log("initalising pubsub");
   useEffect(() => {
     PubSub.subscribe("sdk/test/js", {provider: "AWSIoTProvider"}).subscribe({
       next: (data) => {
-        console.log("test");
-        console.log("message: ", data);
+        console.log("Received message.");
+        console.log(data.value);
       },
       error: (err) => {
         console.log("error");
@@ -27,20 +26,12 @@ const TestPage = () => {
     <>
     <div>TestPage</div>
     <button onClick={ async () =>  {
-      console.log("plubishing");
       try{
-        // PubSub.addPluggable(
-        //   new AWSIoTProvider({
-        //     aws_pubsub_region: process.env.REACT_APP_AWS_PUBSUB_REGION,
-        //     aws_pubsub_endpoint: process.env.REACT_APP_AWS_PUBSUB_ENDPOINT
-        //   })
-        // )
-
-        await PubSub.publish("sdk/test/js", {msg: "test"});
+        await PubSub.publish("sdk/test/js", {msg: "test123"});
+        console.log("published data");
       } catch (e) {
         console.log(e);
       }
-      console.log("finsih pub");
     }}>publish</button>
     </>
   )
