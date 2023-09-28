@@ -1,0 +1,14 @@
+{
+  "resourceName": "colourRecognitionDb",
+  "tableName": "UserDevice",
+  "partitionKey": {
+    "fieldName": "userId",
+    "fieldType": "string"
+  },
+  "sortKey": {
+    "fieldName": "deviceId",
+    "fieldType": "string"
+  },
+  "gsi": [],
+  "triggerFunctions": []
+}

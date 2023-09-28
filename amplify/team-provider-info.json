@@ -9,11 +9,24 @@
       "UnauthRoleName": "amplify-colourrecognition-dev-144136-unauthRole",
       "StackName": "amplify-colourrecognition-dev-144136",
       "StackId": "arn:aws:cloudformation:ap-southeast-2:037876812924:stack/amplify-colourrecognition-dev-144136/c044b8f0-5c37-11ee-b919-06f515516c44",
-      "AmplifyAppId": "d20mbuuyvzbg59"
+      "AmplifyAppId": "d20mbuuyvzbg59",
+      "APIGatewayAuthURL": "https://s3.amazonaws.com/amplify-colourrecognition-dev-144136-deployment/amplify-cfn-templates/api/APIGatewayAuthStack.json"
     },
     "categories": {
       "auth": {
         "colourrecognition6e5f5bb8": {}
+      },
+      "function": {
+        "colourRecognitionLambda": {
+          "deploymentBucketName": "amplify-colourrecognition-dev-144136-deployment",
+          "s3Key": "amplify-builds/colourRecognitionLambda-784f766365616c43466f-build.zip"
+        }
+      },
+      "storage": {
+        "colourRecognitionDb": {}
+      },
+      "api": {
+        "colourRecognitionApi": {}
       }
     }
   }
