@@ -165,7 +165,8 @@ app.post(path + "/:deviceId" + "/link", async function(req, res) {
   const deviceId = req.params.deviceId;
   const paramBody = {
     userId, 
-    deviceId
+    deviceId,
+    linkDate: (new Date()).toISOString()
   };
 
   const params = {
