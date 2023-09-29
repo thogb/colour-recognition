@@ -21,8 +21,6 @@ exports.handler = async (event, context) => {
     const start = new Date(event.start);
     const end = new Date(event.end);
     
-    console.log(event);
-    
     const params = {
         TableName: tableName,
         Item: {
