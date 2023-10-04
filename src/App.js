@@ -5,6 +5,8 @@ import TestPage from './pages/testPage/TestPage';
 import { Amplify, Auth } from 'aws-amplify';
 import awsExports from "./aws-exports"
 import { AWSIoTProvider } from '@aws-amplify/pubsub';
+import ApiCaller from './ApiCaller';
+
 
 Amplify.configure(awsExports)
 Amplify.addPluggable(
@@ -23,6 +25,8 @@ function App({signOut, user}) {
       <div>{process.env.REACT_APP_AWS_PUBSUB_REGION}</div>
       <div>{process.env.REACT_APP_AWS_PUBSUB_ENDPOINT}</div>
       <TestPage/>
+      <h1>API Caller Example</h1>
+      <ApiCaller />
     </div>
   );
 }
