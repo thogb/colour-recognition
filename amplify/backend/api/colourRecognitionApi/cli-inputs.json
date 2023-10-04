@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "paths": {
+    "/device": {
+      "name": "/device",
+      "lambdaFunction": "colourRecognitionLambda",
+      "permissions": {
+        "setting": "private",
+        "auth": [
+          "create",
+          "read",
+          "update",
+          "delete"
+        ]
+      }
+    }
+  }
+}
