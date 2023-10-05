@@ -1,5 +1,5 @@
 import './App.css';
-import { withAuthenticator, Button, Heading } from '@aws-amplify/ui-react';
+import { withAuthenticator, Button } from '@aws-amplify/ui-react';
 import "@aws-amplify/ui-react/styles.css"
 import { Amplify } from 'aws-amplify';
 import awsExports from "./aws-exports"
