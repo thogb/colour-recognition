@@ -10,15 +10,14 @@ import 'react-toastify/dist/ReactToastify.css';
 const API_NAME = "colourRecognitionApi";
 
 const StyledCard = styled(Card)(({ theme }) => ({
-    margin: 20,
+    margin: '1.5vh',
     backgroundColor: '#f5f5f5',
-    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.4)', 
+    boxShadow: '0 0.3vh 0.8vh rgba(0, 0, 0, 0.4)', 
 }));
 
 const StyledFab = styled(Fab)(({ theme }) => ({
     position: 'fixed',
-    // right: '0px',
-    bottom: '50px',
+    bottom: '5vh',
     zIndex: 10,
 }));
 
@@ -74,8 +73,8 @@ const StartPage = () => {
 
     return (
         <div>
-            <Typography variant="h4" component="h2" style={{margin: '20px 0', color: '#3f51b5'}}>My Devices</Typography>
-            {devices.length === 0 && <Typography variant="h6" component="p" style={{margin: '20px'}}>You don't have any devices linked yet.</Typography>}
+            <Typography variant="h4" component="h2" style={{margin: '2vh 0', color: '#3f51b5'}}>My Devices</Typography>
+            {devices.length === 0 && <Typography variant="h6" component="p" style={{margin: '2vh'}}>You don't have any devices linked yet.</Typography>}
             {devices.map(device => (
                 <StyledCard key={device.deviceId}>
                     <CardContent>

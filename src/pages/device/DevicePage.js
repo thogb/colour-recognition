@@ -1,22 +1,72 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { API } from 'aws-amplify';
+import { API, PubSub } from 'aws-amplify';
 import { toast } from 'react-toastify';
-import { Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination } from '@mui/material';
+import { Card, CardContent, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, Button, Grid } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, Cell, Label } from 'recharts';
+import { styled } from '@mui/system';
+
+const ChartContainer = styled('div')(({ theme }) => ({
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    [theme.breakpoints.down('sm')]: {
+        flexDirection: 'column',
+        alignItems: 'center'
+    }
+}));
+
+const ChartItem = styled('div')(({ theme }) => ({
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    [theme.breakpoints.down('sm')]: {
+        marginBottom: theme.spacing(2)
+    }
+}));
 
 const API_NAME = "colourRecognitionApi";
 const TOTAL_SCORE = 5;
+const MODES = ["Training mode", "Game mode"];
 
 const DevicePage = () => {
     const { deviceId } = useParams();
     const [gameData, setGameData] = useState([]);
+    const [mode, setMode] = useState(0);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const chartContainerRef = useRef(null);
+    const [chartWidth, setChartWidth] = useState(0);
 
     useEffect(() => {
         getDeviceGameData();
+        const subscription = PubSub.subscribe(`colourRecognition/${deviceId}/mode`, { provider: "AWSIoTProvider" }).subscribe({
+            next: (data) => {
+                setMode(data.value.mode);
+                console.log("Current mode:", data.value.mode);
+            },
+            error: (err) => {
+                console.error("Failed to get device mode:", err);
+                toast.error("Failed to get device mode.");
+            },
+            complete: () => {
+              console.log("done");
+            }
+        });
+        return () => subscription.unsubscribe();  // Cleanup on component unmount
     }, []);
+
+    useEffect(() => {
+        if (chartContainerRef.current) {
+            const containerWidth = chartContainerRef.current.offsetWidth;
+            if (window.innerWidth <= 600) {
+                setChartWidth(containerWidth);
+            } else {
+                setChartWidth(500);
+            }
+        }
+    }, [chartContainerRef]);
 
     const getDeviceGameData = async () => {
         try {
@@ -26,6 +76,19 @@ const DevicePage = () => {
         } catch (error) {
             console.error("API Error:", error);
             toast.error("Failed to fetch game data.");
+        }
+    };
+
+    const toggleMode = async () => {
+        const newMode = (mode + 1) % 2;  // Toggle between 0 and 1
+        try {
+            await PubSub.publish(`colourRecognition/${deviceId}/mode`, { mode: newMode });
+            console.log(`colourRecognition/${deviceId}/mode`);
+            setMode(newMode);
+            toast.success(`Switched to ${MODES[newMode]}`);
+        } catch (error) {
+            console.error("Failed to change mode:", error);
+            toast.error("Failed to change mode.");
         }
     };
 
@@ -63,25 +126,33 @@ const DevicePage = () => {
     const getBarColor = (colorName) => {
         switch (colorName) {
             case 'green':
-                return '#90ee90'; // 浅绿色
+                return '#90ee90'; // light green
             case 'red':
-                return '#ff9999'; // 浅红色
+                return '#ff9999'; // light red
             case 'blue':
-                return '#87cefa'; // 浅蓝色
+                return '#87cefa'; // light blue
             default:
-                return '#8884d8'; // 默认颜色
+                return '#8884d8'; // default color
         }
     };
 
     return (
         <div>
-            <Typography variant="h4" component="h2" style={{margin: '20px 0', color: '#3f51b5'}}>Game Data for Device {deviceId}</Typography>
-            <Card style={{margin: '10px 0'}}>
+            <Grid container justifyContent="space-between" alignItems="center" style={{margin: '2vh 0'}}>
+                <Typography variant="h4" component="h2" color="#3f51b5">Game Data for Device {deviceId}</Typography>
+                <div>
+                    <Button variant="contained" color="primary" onClick={toggleMode}>
+                        Switch Mode
+                    </Button>
+                    <Typography style={{marginLeft: '2vh'}}>Current Mode: {MODES[mode]}</Typography>
+                </div>
+            </Grid>
+            <Card style={{margin: '1vh 0'}}>
                 <CardContent>
-                    <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                        <div style={{flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                            <Typography variant="h6" component="h3" style={{textAlign: 'center', marginBottom: '2px', color: '#6664b8'}}>Score Distribution</Typography>
-                            <BarChart width={500} height={300} data={scoreCounts}>
+                    <ChartContainer ref={chartContainerRef}>
+                        <ChartItem>
+                            <Typography variant="h6" component="h3" style={{textAlign: 'center', color: '#6664b8'}}>Score Distribution</Typography>
+                            <BarChart width={chartWidth} height={300} data={scoreCounts}>
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="score"/>
                                 <YAxis/>
@@ -89,10 +160,10 @@ const DevicePage = () => {
                                 <Legend />
                                 <Bar dataKey="Count" fill="#8884d8" />
                             </BarChart>
-                        </div>
-                        <div style={{flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                            <Typography variant="h6" component="h3" style={{textAlign: 'center', marginBottom: '2px', color: '#6664b8'}}>Color Accuracy</Typography>
-                            <BarChart width={500} height={300} data={chartData}>
+                        </ChartItem>
+                        <ChartItem ref={chartContainerRef}>
+                            <Typography variant="h6" component="h3" style={{textAlign: 'center', color: '#6664b8'}}>Color Accuracy</Typography>
+                            <BarChart width={chartWidth} height={300} data={chartData}>
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis dataKey="color"/>
                                 <YAxis/>
@@ -104,8 +175,8 @@ const DevicePage = () => {
                                     }
                                 </Bar>
                             </BarChart>
-                        </div>
-                    </div>
+                        </ChartItem>
+                    </ChartContainer>
                 </CardContent>
             </Card>
 

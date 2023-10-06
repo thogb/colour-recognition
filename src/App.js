@@ -5,8 +5,10 @@ import { Amplify } from 'aws-amplify';
 import awsExports from "./aws-exports"
 import { AWSIoTProvider } from '@aws-amplify/pubsub';
 import StartPage from './pages/start/StartPage';
-import DevicePage from './pages/device/DevicePage.js'
+import DevicePage from './pages/device/DevicePage'
+import TestPage from './pages/testPage/TestPage';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AppBar, Toolbar, Typography, Container } from '@mui/material';
@@ -40,7 +42,9 @@ function App({signOut, user}) {
           <StyledToolbar>
             <Typography variant="h6">IoT Management Platform</Typography>
             <div>
-              <Typography variant="subtitle1" style={{ display: 'inline-block', marginRight: '20px' }}>Hello, {user.username}</Typography>
+              <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Typography variant="subtitle1" style={{ display: 'inline-block', marginRight: '20px' }}>Hello, {user.username}</Typography>
+              </Link>
               <Button color="inherit" onClick={signOut}>Sign Out</Button>
             </div>
           </StyledToolbar>
@@ -53,6 +57,7 @@ function App({signOut, user}) {
           <Routes>
             <Route path="/" element={<StartPage />} />
             <Route path="/device/:deviceId" element={<DevicePage />} />
+            <Route path="/test" element={<TestPage />} />
           </Routes>
         </Container>
         <ToastContainer />
