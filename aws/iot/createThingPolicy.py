@@ -30,20 +30,18 @@ pDoc = {
         "iot:PublishRetain"
       ],
       "Resource": [
-        f"arn:aws:iot:ap-southeast-2:037876812924:topic/colourRecognition/{pName}/mode",
-        f"arn:aws:iot:ap-southeast-2:037876812924:topic/colourRecognition/{pName}/gameData",
-        f"arn:aws:iot:ap-southeast-2:037876812924:topic/colourRecognition/{pName}/gameInstruction",
+        f"arn:aws:iot:ap-southeast-2:037876812924:topic/colourRecognition/{pName}/gameData/new"
         f"arn:aws:iot:ap-southeast-2:037876812924:topic/$aws/things/{pName}/shadow/get",
-        f"arn:aws:iot:ap-southeast-2:037876812924:topic/$aws/things/{pName}/shadow/update"
+        f"arn:aws:iot:ap-southeast-2:037876812924:topic/$aws/things/{pName}/shadow/update",
+        f"arn:aws:iot:ap-southeast-2:037876812924:topic/$aws/things/{pName}/shadow/get/*",
+        f"arn:aws:iot:ap-southeast-2:037876812924:topic/$aws/things/{pName}/shadow/update/*"
       ]
     },
     {
       "Effect": "Allow",
       "Action": "iot:Subscribe",
       "Resource": [
-        f"arn:aws:iot:ap-southeast-2:037876812924:topicfilter/colourRecognition/{pName}/mode",
-        f"arn:aws:iot:ap-southeast-2:037876812924:topicfilter/colourRecognition/{pName}/gameData",
-        f"arn:aws:iot:ap-southeast-2:037876812924:topicfilter/colourRecognition/{pName}/gameInstruction",
+        f"arn:aws:iot:ap-southeast-2:037876812924:topicfilter/colourRecognition/{pName}/gameData/new",
         f"arn:aws:iot:ap-southeast-2:037876812924:topicfilter/$aws/things/{pName}/shadow/update/*",
         f"arn:aws:iot:ap-southeast-2:037876812924:topicfilter/$aws/things/{pName}/shadow/get/*"
       ]
