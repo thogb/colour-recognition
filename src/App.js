@@ -40,7 +40,9 @@ function App({signOut, user}) {
       <div className="App">
         <StyledAppBar position="static" color="primary">
           <StyledToolbar>
-            <Typography variant="h6">IoT Management Platform</Typography>
+            <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Typography variant="h6">IoT Management Platform</Typography>
+            </Link>
             <div>
               <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <Typography variant="subtitle1" style={{ display: 'inline-block', marginRight: '20px' }}>Hello, {user.username}</Typography>
