@@ -19,7 +19,7 @@
       "function": {
         "colourRecognitionLambda": {
           "deploymentBucketName": "amplify-colourrecognition-dev-144136-deployment",
-          "s3Key": "amplify-builds/colourRecognitionLambda-3339437538773563476e-build.zip"
+          "s3Key": "amplify-builds/colourRecognitionLambda-44536b4974713643734c-build.zip"
         }
       },
       "storage": {
