@@ -6,6 +6,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-sdk/client-iot": "^3.421.0",
+    "@aws-sdk/client-iot-data-plane": "^3.427.0",
     "aws-serverless-express": "^3.3.5",
     "body-parser": "^1.19.1",
     "express": "^4.17.2"

@@ -7,7 +7,8 @@ See the License for the specific language governing permissions and limitations 
 */
 
 // This is used to communicate with IoT Core, e.g verify a device exists
-const { IoTClient, DescribeThingCommand } = require("@aws-sdk/client-iot");
+const { IoTClient, DescribeThingCommand, AttachPolicyCommand } = require("@aws-sdk/client-iot");
+const { IoTDataPlaneClient, GetThingShadowCommand } = require("@aws-sdk/client-iot-data-plane");
 
 // For dynamodb
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
@@ -20,6 +21,8 @@ const ddbClient = new DynamoDBClient({ region: process.env.TABLE_REGION });
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 
 const iotClient = new IoTClient({ region: process.env.TABLE_REGION });
+
+const iotDataClient = new IoTDataPlaneClient({ region: process.env.TABLE_REGION });
 
 // The main table, contains the user and device records
 let tableName = "UserDevice-dev";
@@ -163,6 +166,7 @@ app.get(path, async function(req, res) {
 app.post(path + "/:deviceId" + "/link", async function(req, res) {
   const userId = getUserId(req);
   const deviceId = req.params.deviceId;
+  const policyName = `${deviceId}-p`
   const paramBody = {
     userId, 
     deviceId,
@@ -174,7 +178,7 @@ app.post(path + "/:deviceId" + "/link", async function(req, res) {
     Item: paramBody
   };
 
-  const thingExist = doesThingExist(deviceId);
+  const thingExist = await doesThingExist(deviceId);
 
   if (!thingExist) {
     res.statusCode = 300;
@@ -182,7 +186,25 @@ app.post(path + "/:deviceId" + "/link", async function(req, res) {
     return;
   }
 
-  try{
+  if ((await userOwnDevice(userId, deviceId))) {
+    res.statusCode = 300;
+    res.json({error: 'User already linked to device'});
+    return;
+  }
+
+  try {
+    const data = await iotClient.send(new AttachPolicyCommand({
+      policyName: policyName,
+      target: userId,
+    }))
+  } catch (err) {
+    console.error(err);
+    res.statusCode = 500;
+    res.json({error: "Failed to attach policy"});
+    return;
+  }
+
+  try {
     const data = await ddbDocClient.send(new PutCommand(params));
     res.json(paramBody);
   } catch (err) {
@@ -190,6 +212,30 @@ app.post(path + "/:deviceId" + "/link", async function(req, res) {
     res.json({error: 'Could not load items: ' + err.message});
   }
 });
+
+// GET /device/:deviceId/shadow
+app.get(path + "/:deviceId" + "/shadow", async function(req, res) {
+  const userId = getUserId(req);
+  const deviceId = req.params.deviceId;
+
+  if (! (await userOwnDevice(userId, deviceId))) {
+    res.statusCode = 401;
+    res.json({error: 'Unauthorized'});
+    return;
+  }
+
+  const params = {
+    thingName: deviceId
+  }
+
+  try {
+    const data = await iotDataClient.send(new GetThingShadowCommand(params));
+    res.json(JSON.parse(Buffer.from(data.payload).toString()));
+  } catch (err) {
+    res.statusCode = 500;
+    res.json({error: 'Could not load items: ' + err.message});
+  }
+})
 
 // GET /device/:deviceId/gamedata
 // Retrieve all the gamedata associated with the device with id of :deviceId

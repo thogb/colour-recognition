@@ -19,7 +19,7 @@ const ApiPage = () => {
         console.log("getGameData");
         API.get(
             API_NAME,
-            "/device/123/gamedata",
+            "/device/testThing/gamedata",
             {}
         ).then(res => console.log(res)).catch(err => console.log(err))
     }
@@ -28,7 +28,16 @@ const ApiPage = () => {
         console.log("link device");
         API.post(
             API_NAME,
-            "/device/asd/link",
+            "/device/testThing/link",
+            {}
+        ).then(res => console.log(res)).catch(err => console.log(err))
+    }
+
+    const getShadow = async () => {
+        console.log("link device");
+        API.get(
+            API_NAME,
+            "/device/testThing/shadow",
             {}
         ).then(res => console.log(res)).catch(err => console.log(err))
     }
@@ -38,6 +47,7 @@ const ApiPage = () => {
         <button onClick={getDevice}>getDevice</button>
         <button onClick={getGameData}>getGameData</button>
         <button onClick={linkDevice}>linkDevice</button>
+        <button onClick={getShadow}>getShadow</button>
     </>
   )
 }
