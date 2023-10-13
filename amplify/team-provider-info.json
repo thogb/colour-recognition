@@ -27,6 +27,9 @@
       },
       "api": {
         "colourRecognitionApi": {}
+      },
+      "hosting": {
+        "S3AndCloudFront": {}
       }
     }
   }
