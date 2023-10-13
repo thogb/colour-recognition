@@ -43,6 +43,18 @@ const mapColorToString = (color) => {
     }
 };
 
+// const testData = {
+//     "deviceId": "testThing",
+//     "gameId": "a5c41c7a-b1db-4b56-9f5f-e82218ac0000",
+//     "start": "2023-10-13T08:20:11.298Z",
+//     "end": "2023-10-13T08:20:21.298Z",
+//     "score": 3,
+//     "size": 4,
+//     "questions": [1, 2, 3, 1],
+//     "answers": [1, 2, 3, 2]
+// };
+
+
 const DevicePage = () => {
     const { deviceId } = useParams();
     const [gameData, setGameData] = useState([]);
@@ -52,14 +64,29 @@ const DevicePage = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [scoreCounts, setScoreCounts] = useState([]);
+    const [chartData, setChartData] = useState([]);
     const chartContainerRef = useRef(null);
     const [chartWidth, setChartWidth] = useState(0);
 
+    // const handleTestPublish = async () => {
+    //     try {
+    //         await PubSub.publish(`colourRecognition/${deviceId}/gameData/new`, testData);
+    //         console.log("Test data published successfully!");
+    //         toast.success("Test data published successfully!");
+    //     } catch (error) {
+    //         console.error("Failed to publish test data:", error);
+    //         toast.error("Failed to publish test data.");
+    //     }
+    // };
+
     useEffect(() => {
         getDeviceGameData();
+        getDeviceSetting();
         const modeSubscription = PubSub.subscribe(`$aws/things/${deviceId}/shadow/update`, { provider: "AWSIoTProvider" }).subscribe({
             next: (data) => {
                 setMode(data.value.state.desired.mode);
+                setQuestionsSettings(data.value.state.desired.questions);
                 console.log("Current Shadow Data:", data.value);
             },
             error: (err) => {
@@ -73,7 +100,7 @@ const DevicePage = () => {
 
         const gameDataSubscription = PubSub.subscribe(`colourRecognition/${deviceId}/gameData/new`, { provider: "AWSIoTProvider" }).subscribe({
             next: (data) => {
-                // setGameData([data.value, ...gameData]);
+                setGameData(prevGameData => [data.value, ...prevGameData]);
                 console.log("New game data received:", data.value);
             },
             error: (err) => {
@@ -87,6 +114,29 @@ const DevicePage = () => {
             gameDataSubscription.unsubscribe();  // Cleanup on component unmount
         };
     }, []);  // only run when the page init
+
+    const getDeviceGameData = async () => {
+        try {
+            const response = await API.get(API_NAME, `/device/${deviceId}/gameData`, {});
+            setGameData(response);
+            console.log(response);
+        } catch (error) {
+            console.error("API Error:", error);
+            toast.error("Failed to fetch game data.");
+        }
+    };
+
+    const getDeviceSetting = async () => {
+        try {
+            const response = await API.get(API_NAME, `/device/${deviceId}/shadow`, {});
+            setMode(response.state.desired.mode);
+            setQuestionsSettings(response.state.desired.questions);
+            console.log(response);
+        } catch (error) {
+            console.error("API Error:", error);
+            toast.error("Failed to fetch device setting.");
+        }
+    };
 
     useEffect(() => {
         if (chartContainerRef.current) {
@@ -102,17 +152,6 @@ const DevicePage = () => {
     useEffect(() => {
         setTempQuestionsSettings([...questionsSettings]);
     }, [openDialog]);
-
-    const getDeviceGameData = async () => {
-        try {
-            const response = await API.get(API_NAME, `/device/${deviceId}/gameData`, {});
-            setGameData(response);
-            console.log(response);
-        } catch (error) {
-            console.error("API Error:", error);
-            toast.error("Failed to fetch game data.");
-        }
-    };
 
     const toggleMode = async () => {
         const newMode = (mode + 1) % 2;  // Toggle between 0 and 1
@@ -182,38 +221,6 @@ const DevicePage = () => {
         setRowsPerPage(+event.target.value);
         setPage(0);
     };
-    
-    // data analysis
-    const scorePercentages = gameData.map(game => (game.score / game.size) * 100);
-    const scoreCounts = [
-        {range: "0%-25%", Count: scorePercentages.filter(p => p < 25).length},
-        {range: "25%-50%", Count: scorePercentages.filter(p => p >= 25 && p < 50).length},
-        {range: "50%-75%", Count: scorePercentages.filter(p => p >= 50 && p < 75).length},
-        {range: "75%-100%", Count: scorePercentages.filter(p => p >= 75 && p < 100).length},
-        {range: "100%", Count: scorePercentages.filter(p => p === 100).length},
-    ];
-    
-    const colorCounts = gameData.reduce((acc, game) => {
-        game.questions.forEach((question, index) => {
-            const colorString = mapColorToString(question).toLowerCase();
-            if (!acc[colorString]) {
-                acc[colorString] = { total: 0, correct: 0 };
-            }
-            const isCorrect = question === game.answers[index];
-            if (isCorrect) {
-                acc[colorString].correct += 1;
-            }
-            acc[colorString].total += 1;
-        });
-        return acc;
-    }, { red: { total: 0, correct: 0 }, green: { total: 0, correct: 0 }, blue: { total: 0, correct: 0 } });
-
-    const chartData = Object.entries(colorCounts)
-        .filter(([color]) => color !== "waiting")  // exclude the 'waiting' color
-        .map(([color, data]) => ({
-            color,
-            Percentage: (data.correct / data.total) * 100
-        }));
 
     const getBarColor = (colorName) => {
         switch (colorName) {
@@ -228,9 +235,50 @@ const DevicePage = () => {
         }
     };
 
+    useEffect(() => {
+        // data analysis
+        const scorePercentages = gameData.map(game => (game.score / game.size) * 100);
+        
+        setScoreCounts([
+            {range: "0%-25%", Count: scorePercentages.filter(p => p < 25).length},
+            {range: "25%-50%", Count: scorePercentages.filter(p => p >= 25 && p < 50).length},
+            {range: "50%-75%", Count: scorePercentages.filter(p => p >= 50 && p < 75).length},
+            {range: "75%-100%", Count: scorePercentages.filter(p => p >= 75 && p < 100).length},
+            {range: "100%", Count: scorePercentages.filter(p => p === 100).length},
+        ]);
+    
+        const colorCounts = gameData.reduce((acc, game) => {
+            game.questions.forEach((question, index) => {
+                const colorString = mapColorToString(question).toLowerCase();
+                if (!acc[colorString]) {
+                    acc[colorString] = { total: 0, correct: 0 };
+                }
+                const isCorrect = question === game.answers[index];
+                if (isCorrect) {
+                    acc[colorString].correct += 1;
+                }
+                acc[colorString].total += 1;
+            });
+            return acc;
+        }, { red: { total: 0, correct: 0 }, green: { total: 0, correct: 0 }, blue: { total: 0, correct: 0 } });
+    
+        setChartData(
+            Object.entries(colorCounts)
+                .filter(([color]) => color !== "waiting")  // exclude the 'waiting' color
+                .map(([color, data]) => ({
+                    color,
+                    Percentage: (data.correct / data.total) * 100
+                }))
+        );
+    }, [gameData]);  // 当 gameData 发生变化时重新计算
+    
+
     return (
         <div>
             <Typography variant="h4" component="h2" color="#3f51b5">Game Data for Device {deviceId}</Typography>
+            {/* <Button variant="contained" color="secondary" onClick={handleTestPublish} style={{margin: '1vh 0'}}>
+                Publish Test Data
+            </Button> */}
             <div>
                 <Button variant="contained" color="primary" onClick={toggleMode} style={{marginTop: '1vh'}}>
                     Switch Mode
