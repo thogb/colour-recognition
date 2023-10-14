@@ -43,13 +43,15 @@ pDoc = {
       "Resource": [
         f"arn:aws:iot:ap-southeast-2:037876812924:topicfilter/colourRecognition/{tName}/gameData/new",
         f"arn:aws:iot:ap-southeast-2:037876812924:topicfilter/$aws/things/{tName}/shadow/update/*",
-        f"arn:aws:iot:ap-southeast-2:037876812924:topicfilter/$aws/things/{tName}/shadow/get/*"
+        f"arn:aws:iot:ap-southeast-2:037876812924:topicfilter/$aws/things/{tName}/shadow/get/*",
+        f"arn:aws:iot:ap-southeast-2:037876812924:topicfilter/$aws/things/{tName}/shadow/update",
+        f"arn:aws:iot:ap-southeast-2:037876812924:topicfilter/$aws/things/{tName}/shadow/get"
       ]
     },
     {
       "Effect": "Allow",
       "Action": "iot:Connect",
-      "Resource": f"arn:aws:iot:ap-southeast-2:037876812924:client/{tName}"
+      "Resource": f"arn:aws:iot:ap-southeast-2:037876812924:client/*"
     },
     {
       "Effect": "Allow",
