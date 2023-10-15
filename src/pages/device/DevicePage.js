@@ -54,7 +54,6 @@ const mapColorToString = (color) => {
 //     "answers": [1, 2, 3, 2]
 // };
 
-
 const DevicePage = () => {
     const { deviceId } = useParams();
     const [gameData, setGameData] = useState([]);
@@ -100,7 +99,10 @@ const DevicePage = () => {
 
         const gameDataSubscription = PubSub.subscribe(`colourRecognition/${deviceId}/gameData/new`, { provider: "AWSIoTProvider" }).subscribe({
             next: (data) => {
-                setGameData(prevGameData => [data.value, ...prevGameData]);
+                setGameData(prevGameData => {
+                    const updatedData = [data.value, ...prevGameData];
+                    return sortByStartTime(updatedData);
+                });
                 console.log("New game data received:", data.value);
             },
             error: (err) => {
@@ -115,11 +117,16 @@ const DevicePage = () => {
         };
     }, []);  // only run when the page init
 
+    const sortByStartTime = (data) => {
+        return data.sort((a, b) => new Date(b.start) - new Date(a.start));
+    };
+
     const getDeviceGameData = async () => {
         try {
             const response = await API.get(API_NAME, `/device/${deviceId}/gameData`, {});
-            setGameData(response);
-            console.log(response);
+            const sortedData = sortByStartTime(response);
+            setGameData(sortedData);
+            console.log(sortedData);
         } catch (error) {
             console.error("API Error:", error);
             toast.error("Failed to fetch game data.");
